@@ -37,7 +37,7 @@ script_info['optional_options'] = [
  make_option('--min_sample_fraction',type="float",default=0.0,
      help=('the miminim fraction of samples that are in both biom tables that an'
            ' observation must be observed in to include [default: %default]')), 
- make_option('--min_count',type="int",default=1,
+ make_option('--min_count',type="int",default=0,
      help=('the miminim total count an observation must have to include'
            ' [default: %default]')), 
 ]

@@ -34,17 +34,24 @@ script_info['optional_options'] = [
  make_option('-m','--method',type="choice",choices=correlation_fs.keys(),
      help='the method to use for computing correlation [default: %default]', 
      default='spearman'),
+ make_option('--min_sample_fraction',type="float",default=0.0,
+     help=('the miminim fraction of samples that are in both biom tables that an'
+           ' observation must be observed in to include [default: %default]')), 
+ make_option('--min_count',type="int",default=1,
+     help=('the miminim total count an observation must have to include'
+           ' [default: %default]')), 
 ]
 script_info['version'] = __version__
 
-def identify_correlated_observations(table1, table2, correlation_f=spearman):
+def identify_correlated_observations(table1, table2, correlation_f=spearman, min_sample_fraction=0.0, min_count=1):
     result = []
     shared_sample_ids = list(set(table1.SampleIds) & set(table2.SampleIds))
     
     def filter_sam_f(values,id,md):
         return id in shared_sample_ids
     def filter_obs_f(values,id,md):
-        return values.sum() > 0
+        min_samples = round(min_sample_fraction * len(shared_sample_ids))
+        return values.sum() > min_count and len(values.nonzero()[0]) > min_samples
         
     table1_filt = table1.filterSamples(filter_sam_f).filterObservations(filter_obs_f).sortSampleOrder(shared_sample_ids)
     table2_filt = table2.filterSamples(filter_sam_f).filterObservations(filter_obs_f).sortSampleOrder(shared_sample_ids)
@@ -65,7 +72,9 @@ def main():
     data, row_ids, col_ids = identify_correlated_observations(
                               parse_biom_table(open(opts.input_biom_fps[0])), 
                               parse_biom_table(open(opts.input_biom_fps[1])),
-                              correlation_f=correlation_fs[opts.method])
+                              correlation_f=correlation_fs[opts.method],
+                              min_sample_fraction=opts.min_sample_fraction,
+                              min_count=opts.min_count)
     output_f = open(opts.output_fp,'w')
     output_f.write('\t%s\n' % '\t'.join(col_ids))
     for row_id, datum in zip(row_ids, data):

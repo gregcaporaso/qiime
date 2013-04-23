@@ -46,23 +46,23 @@ def identify_correlated_observations(table1, table2, correlation_f=spearman):
     def filter_obs_f(values,id,md):
         return values.sum() > 0
         
-    table1 = table1.filterSamples(filter_sam_f).filterObservations(filter_obs_f).sortSampleOrder(shared_sample_ids)
-    table2 = table2.filterSamples(filter_sam_f).filterObservations(filter_obs_f).sortSampleOrder(shared_sample_ids)
+    table1_filt = table1.filterSamples(filter_sam_f).filterObservations(filter_obs_f).sortSampleOrder(shared_sample_ids)
+    table2_filt = table2.filterSamples(filter_sam_f).filterObservations(filter_obs_f).sortSampleOrder(shared_sample_ids)
     
-    for v1, i1, md1 in table1.iterObservations():
+    for v1, i1, md1 in table1_filt.iterObservations():
         current_data = []
-        for v2, i2, md2 in table2.iterObservations():
+        for v2, i2, md2 in table2_filt.iterObservations():
             current_data.append(correlation_f(v1,v2))
         result.append(current_data)
         
-    return result, table1.ObservationIds, table2.ObservationIds
+    return result, table1_filt.ObservationIds, table2_filt.ObservationIds
 
 
 def main():
     option_parser, opts, args =\
        parse_command_line_parameters(**script_info)
     
-    data, col_ids, row_ids = identify_correlated_observations(
+    data, row_ids, col_ids = identify_correlated_observations(
                               parse_biom_table(open(opts.input_biom_fps[0])), 
                               parse_biom_table(open(opts.input_biom_fps[1])),
                               correlation_f=correlation_fs[opts.method])
